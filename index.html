@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Split group bills fairly when discounts and shared items are involved." />
+    <title>split the difference</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>split the difference</h1>
+      </header>
+
+      <section aria-labelledby="people-heading">
+        <div class="section-header">
+          <h2 id="people-heading">People</h2>
+          <button type="button" class="btn btn-ghost" id="add-person-btn">+ Add</button>
+        </div>
+        <div class="people-list" id="people-list"></div>
+      </section>
+
+      <section aria-labelledby="items-heading">
+        <div class="section-header">
+          <h2 id="items-heading">Items</h2>
+          <button type="button" class="btn btn-ghost" id="add-item-btn">+ Add</button>
+        </div>
+        <div class="items-list" id="items-list"></div>
+      </section>
+
+      <section aria-labelledby="total-heading">
+        <div class="total-row">
+          <span class="total-label" id="total-heading">Total paid</span>
+          <div class="total-input-wrap">
+            <span class="total-currency">₹</span>
+            <input
+              type="number"
+              class="total-input"
+              id="total-input"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              aria-label="Total amount paid"
+            />
+          </div>
+        </div>
+        <p class="items-total-hint" id="items-total-hint" hidden></p>
+      </section>
+
+      <section class="results-section" aria-labelledby="results-heading">
+        <div class="section-header">
+          <h2 id="results-heading">Split</h2>
+        </div>
+        <p class="results-empty" id="results-empty">
+          Add people, items, and total paid to see the split
+        </p>
+        <div class="results-list" id="results-list"></div>
+        <div class="results-total" id="results-total" hidden></div>
+      </section>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
