@@ -2,25 +2,15 @@ const CURRENCY_SYMBOL = '₹';
 const DECIMALS = 2;
 const PAISE_PER_RUPEE = 100;
 
-/** Split paise equally; +1 paise rotates by offset so no one is always short. */
-function splitEquallyPaise(totalPaise, count, offset = 0) {
-  const base = Math.floor(totalPaise / count);
-  const shares = Array(count).fill(base);
-  let remaining = totalPaise - base * count;
-
-  let idx = (count - 1 - (offset % count)) % count;
-  while (remaining > 0) {
-    shares[idx] += 1;
-    remaining -= 1;
-    idx = (idx - 1 + count) % count;
-  }
-
-  return shares;
+function toPaise(amount) {
+  return Math.round(amount * PAISE_PER_RUPEE);
 }
 
-/** Split paise by weight using floor; leftover paise go to last people in list. */
+/** total × (weight / sum of weights), round to paise; leftover paise → last people. */
 function splitProportionalPaise(totalPaise, weights) {
   const sum = weights.reduce((a, b) => a + b, 0);
+  if (sum === 0) return weights.map(() => 0);
+
   const shares = weights.map((w) => Math.floor((totalPaise * w) / sum));
   let remaining = totalPaise - shares.reduce((a, b) => a + b, 0);
 
@@ -42,27 +32,19 @@ function splitProportionalPaise(totalPaise, weights) {
   return shares;
 }
 
+/** Each person's share = sum of (item price ÷ number of eaters). No rounding per item. */
 function computeShares(people, items) {
   const shares = new Map(people.map((p) => [p.id, 0]));
 
-  items.forEach((item, itemIndex) => {
-    const consumers = item.consumerIds
-      .filter((id) => shares.has(id))
-      .sort();
+  for (const item of items) {
+    const consumers = item.consumerIds.filter((id) => shares.has(id));
+    if (consumers.length === 0) continue;
 
-    if (consumers.length === 0) return;
-
-    const pricePaise = Math.round(item.price * PAISE_PER_RUPEE);
-    const portions = splitEquallyPaise(
-      pricePaise,
-      consumers.length,
-      itemIndex
-    );
-
-    consumers.forEach((id, i) => {
-      shares.set(id, shares.get(id) + portions[i]);
-    });
-  });
+    const portionPaise = toPaise(item.price) / consumers.length;
+    for (const id of consumers) {
+      shares.set(id, shares.get(id) + portionPaise);
+    }
+  }
 
   return people.map((p) => ({
     id: p.id,
@@ -73,16 +55,15 @@ function computeShares(people, items) {
 
 function splitBill(people, items, totalPaid) {
   const personShares = computeShares(people, items);
-  const totalPaise = Math.round(totalPaid * PAISE_PER_RUPEE);
+  const totalPaise = toPaise(totalPaid);
   const weights = personShares.map((p) => p.sharePaise);
-  const sumSharePaise = weights.reduce((a, b) => a + b, 0);
+  const sumWeights = weights.reduce((a, b) => a + b, 0);
 
-  if (sumSharePaise === 0 || totalPaise <= 0) {
+  if (sumWeights === 0 || totalPaise <= 0) {
     return personShares.map((p) => ({
       id: p.id,
       name: p.name,
       amount: 0,
-      sharePaise: p.sharePaise,
     }));
   }
 
@@ -92,7 +73,6 @@ function splitBill(people, items, totalPaid) {
     id: p.id,
     name: p.name,
     amount: amountsPaise[i] / PAISE_PER_RUPEE,
-    sharePaise: p.sharePaise,
   }));
 }
 
@@ -101,10 +81,7 @@ function formatAmount(amount) {
 }
 
 function itemsTotalPaise(items) {
-  return items.reduce(
-    (s, item) => s + Math.round(item.price * PAISE_PER_RUPEE),
-    0
-  );
+  return items.reduce((s, item) => s + toPaise(item.price), 0);
 }
 
 function formatPaise(paise) {
